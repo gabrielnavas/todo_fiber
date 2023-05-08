@@ -1,0 +1,13 @@
+version: '3.1'
+
+services:
+
+  task_db_dev:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: task
+
+    ports:
+      - 5435:5432
