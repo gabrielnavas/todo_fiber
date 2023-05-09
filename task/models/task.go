@@ -6,11 +6,11 @@ import (
 )
 
 type Task struct {
-	Id          string
-	Description string
-	Status      *TaskStatus
-	CreatedAt   time.Time
-	UpdateAt    time.Time
+	Id          string      `json:"id"`
+	Description string      `json:"description"`
+	Status      *TaskStatus `json:"status"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdateAt    time.Time   `json:"updated_at"`
 }
 
 func (t *Task) Validate() error {

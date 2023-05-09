@@ -21,9 +21,15 @@ func (tc *TaskController) Create() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 
 		var task = &models.Task{}
-		ctx.BodyParser(task)
+		err := ctx.BodyParser(task)
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
+				"message": err.Error(),
+			})
+			return nil
+		}
 
-		task, err := tc.taskService.Create(task)
+		task, err = tc.taskService.Create(task)
 		if err != nil {
 			ctx.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
 				"message": err.Error(),

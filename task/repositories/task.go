@@ -43,31 +43,24 @@ func (ts *TaskRepository) GetAll(task *models.Task) ([]*models.Task, error) {
 }
 
 func (ts *TaskRepository) GetByDescription(description string) (*models.Task, error) {
-	sqlQuery := `
+	sqlStatement := `
 		SELECT id, description, created_at, updated_at, id_task_status
 		FROM task
 		where description = $1 
 	`
-
-	row := ts.db.QueryRow(sqlQuery, description)
-	if row.Err() != nil {
-		return nil, row.Err()
-	}
-
 	task := &models.Task{}
 	taskStatusId := ""
-	err := row.Scan(&task.Id, &task.Description, &task.CreatedAt, &task.UpdateAt, &taskStatusId)
-	if row.Err() != nil && row.Err() != sql.ErrNoRows {
-		return nil, row.Err()
-	}
-	if row.Err() != nil && row.Err() == sql.ErrNoRows {
+	row := ts.db.QueryRow(sqlStatement, description)
+	switch err := row.Scan(&task.Id, &task.Description, &task.CreatedAt, &task.UpdateAt, &taskStatusId); err {
+	case sql.ErrNoRows:
 		return nil, nil
-	}
-
-	task.Status, err = ts.taskStatusRepository.Get(taskStatusId)
-	if err != nil {
+	case nil:
+		task.Status, err = ts.taskStatusRepository.Get(taskStatusId)
+		if err != nil {
+			return nil, err
+		}
+		return task, nil
+	default:
 		return nil, err
 	}
-
-	return task, nil
 }

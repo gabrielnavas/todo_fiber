@@ -7,6 +7,7 @@ import (
 	"database/sql"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	_ "github.com/lib/pq"
 )
 
@@ -28,6 +29,11 @@ func makeDatabase() *sql.DB {
 
 func main() {
 	app := fiber.New()
+	app.Use(cors.New())
+	// app.Use(cors.New(cors.Config{
+	// 	AllowOrigins: "localhost:3000",
+	// 	AllowHeaders: "Origin, Content-Type, Accept",
+	// }))
 
 	db := makeDatabase()
 	defer db.Close()

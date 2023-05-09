@@ -40,26 +40,20 @@ func (ts *TaskStatus) GetByName(name string) (*models.TaskStatus, error) {
 }
 
 func (ts *TaskStatus) Get(id string) (*models.TaskStatus, error) {
-	sqlQuery := `
+	sqlStatement := `
 		SELECT name
 		FROM task_status
 		where id = $1
 	`
 
-	row := ts.db.QueryRow(sqlQuery, id)
-	if row.Err() != nil && row.Err() != sql.ErrNoRows {
-		return nil, row.Err()
-	}
-	if row.Err() != nil && row.Err() == sql.ErrNoRows {
-		return nil, nil
-	}
-
 	taskStatus := &models.TaskStatus{}
-	taskStatus.Id = id
-	err := row.Scan(&taskStatus.Name)
-	if err != nil {
+	row := ts.db.QueryRow(sqlStatement, id)
+	switch err := row.Scan(&taskStatus.Id, &taskStatus.Name); err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		return taskStatus, nil
+	default:
 		return nil, err
 	}
-
-	return taskStatus, nil
 }
