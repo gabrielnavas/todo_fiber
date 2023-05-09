@@ -37,13 +37,12 @@ func (tc *TaskController) Create() fiber.Handler {
 			return nil
 		}
 
-		ctx.Status(fiber.StatusCreated).JSON(&fiber.Map{
+		return ctx.Status(fiber.StatusCreated).JSON(&fiber.Map{
 			"task": fiber.Map{
-				"id":      task.Id,
-				"message": task.Description,
+				"id":          task.Id,
+				"description": task.Description,
 			},
 		})
-		return nil
 	}
 }
 
@@ -73,6 +72,29 @@ func (tc *TaskController) Get() fiber.Handler {
 
 func (tc *TaskController) GetAll() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		return ctx.SendStatus(fiber.StatusOK)
+		tasks, err := tc.taskService.GetAll()
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
+				"message": err.Error(),
+			})
+			return nil
+		}
+
+		tasksFiltred := []fiber.Map{}
+		for _, task := range tasks {
+			tasksFiltred = append(tasksFiltred, fiber.Map{
+				"id":          task.Id,
+				"description": task.Description,
+				"createdAt":   task.CreatedAt,
+				"updatedAt":   task.UpdateAt,
+				"status": fiber.Map{
+					"id":   task.Status.Id,
+					"name": task.Status.Name,
+				},
+			})
+		}
+		return ctx.Status(fiber.StatusOK).JSON(&fiber.Map{
+			"tasks": tasksFiltred,
+		})
 	}
 }

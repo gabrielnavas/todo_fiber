@@ -59,8 +59,8 @@ func (ts *TaskService) Delete(task *models.Task) (*models.Task, error) {
 	return nil, nil
 }
 
-func (ts *TaskService) GetAll(task *models.Task) ([]*models.Task, error) {
-	return []*models.Task{}, nil
+func (ts *TaskService) GetAll() ([]*models.Task, error) {
+	return ts.taskRepository.GetAll()
 }
 
 func (ts *TaskService) Get(task *models.Task) (*models.Task, error) {

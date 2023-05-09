@@ -41,7 +41,7 @@ func (ts *TaskStatus) GetByName(name string) (*models.TaskStatus, error) {
 
 func (ts *TaskStatus) Get(id string) (*models.TaskStatus, error) {
 	sqlStatement := `
-		SELECT name
+		SELECT id, name
 		FROM task_status
 		where id = $1
 	`

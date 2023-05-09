@@ -9,8 +9,8 @@ type Task struct {
 	Id          string      `json:"id"`
 	Description string      `json:"description"`
 	Status      *TaskStatus `json:"status"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdateAt    time.Time   `json:"updated_at"`
+	CreatedAt   time.Time   `json:"createdAt"`
+	UpdateAt    time.Time   `json:"updatedAt"`
 }
 
 func (t *Task) Validate() error {

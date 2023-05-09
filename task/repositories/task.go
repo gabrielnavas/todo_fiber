@@ -38,8 +38,35 @@ func (ts *TaskRepository) Delete(task *models.Task) (*models.Task, error) {
 	return nil, nil
 }
 
-func (ts *TaskRepository) GetAll(task *models.Task) ([]*models.Task, error) {
-	return []*models.Task{}, nil
+func (ts *TaskRepository) GetAll() ([]*models.Task, error) {
+	sqlStatement := `
+		SELECT id, description, created_at, updated_at, id_task_status
+		FROM task;
+	`
+	rows, err := ts.db.Query(sqlStatement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks = []*models.Task{}
+
+	for rows.Next() {
+		var task = &models.Task{}
+		var taskStatusId string = ""
+		if err := rows.Scan(&task.Id, &task.Description, &task.CreatedAt, &task.UpdateAt, &taskStatusId); err != nil {
+			return tasks, err
+		}
+		task.Status, err = ts.taskStatusRepository.Get(taskStatusId)
+		if err != nil {
+			return tasks, err
+		}
+		tasks = append(tasks, task)
+	}
+	if err = rows.Err(); err != nil {
+		return tasks, err
+	}
+	return tasks, nil
 }
 
 func (ts *TaskRepository) GetByDescription(description string) (*models.Task, error) {
