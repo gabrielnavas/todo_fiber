@@ -73,13 +73,42 @@ func (tc *TaskController) Update() fiber.Handler {
 
 func (tc *TaskController) UpdateStatus() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		taskId := ctx.Params("task_id", "0")
+
+		var task = &models.Task{}
+		err := ctx.BodyParser(task)
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
+				"message": err.Error(),
+			})
+			return nil
+		}
+
+		err = tc.taskService.UpdateStatus(taskId, task.Status.Name)
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
+				"message": err.Error(),
+			})
+			return nil
+		}
+
 		return ctx.SendStatus(fiber.StatusNoContent)
 	}
 }
 
 func (tc *TaskController) Delete() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		return ctx.SendStatus(fiber.StatusOK)
+		taskId := ctx.Params("task_id", "0")
+
+		err := tc.taskService.Delete(taskId)
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest).JSON(&fiber.Map{
+				"message": err.Error(),
+			})
+			return nil
+		}
+
+		return ctx.SendStatus(fiber.StatusNoContent)
 	}
 }
 

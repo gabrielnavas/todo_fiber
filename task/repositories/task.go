@@ -40,12 +40,26 @@ func (ts *TaskRepository) Update(taskId string, task *models.Task) error {
 	return err
 }
 
-func (ts *TaskRepository) UpdateStatus(newStatus *models.TaskStatus, task *models.Task) error {
-	return nil
+func (ts *TaskRepository) UpdateStatus(taskId string, task *models.Task) error {
+	sqlStatement := `
+		UPDATE task
+		SET 
+			id_task_status = $1,
+			updated_at = $2
+		WHERE
+			id = $3;
+	`
+	_, err := ts.db.Exec(sqlStatement, task.Status.Id, task.UpdateAt, taskId)
+	return err
 }
 
-func (ts *TaskRepository) Delete(task *models.Task) (*models.Task, error) {
-	return nil, nil
+func (ts *TaskRepository) Delete(taskId string) error {
+	sqlStatement := `
+		DELETE FROM task
+		WHERE id = $1;
+	`
+	_, err := ts.db.Exec(sqlStatement, taskId)
+	return err
 }
 
 func (ts *TaskRepository) GetAll() ([]*models.Task, error) {

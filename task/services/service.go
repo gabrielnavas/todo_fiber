@@ -94,12 +94,54 @@ func (ts *TaskService) Update(taskId string, task *models.Task) error {
 	return nil
 }
 
-func (ts *TaskService) UpdateStatus(newStatus *models.TaskStatus, task *models.Task) error {
+func (ts *TaskService) UpdateStatus(taskId string, taskNewStatus string) error {
+	taskFound, err := ts.taskRepository.GetById(taskId)
+	if err != nil {
+		return err
+	}
+	if taskFound == nil {
+		return errors.New("task não encontrada")
+	}
+
+	taskStatusFound, err := ts.taskStatusRepository.GetByName(taskNewStatus)
+	if err != nil {
+		// TODO: tratar melhor os erros do repositório
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
+	if taskStatusFound == nil {
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
+
+	taskFound.Status = taskStatusFound
+	taskFound.UpdateAt = time.Now()
+
+	err = ts.taskRepository.UpdateStatus(taskId, taskFound)
+	if err != nil {
+		// TODO: tratar melhor os erros do repositório
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
 	return nil
 }
 
-func (ts *TaskService) Delete(task *models.Task) (*models.Task, error) {
-	return nil, nil
+func (ts *TaskService) Delete(taskId string) error {
+	taskFound, err := ts.taskRepository.GetById(taskId)
+	if err != nil {
+		return err
+	}
+	if taskFound == nil {
+		return errors.New("task não encontrada")
+	}
+
+	err = ts.taskRepository.Delete(taskFound.Id)
+	if err != nil {
+		// TODO: tratar melhor os erros do repositório
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
+	return nil
 }
 
 func (ts *TaskService) GetAll() ([]*models.Task, error) {
