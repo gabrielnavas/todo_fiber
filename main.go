@@ -44,7 +44,7 @@ func main() {
 	taskController := controller.NewTaskController(taskService)
 
 	app.Post("/task", taskController.Create())
-	app.Put("/task", taskController.Update())
+	app.Put("/task/:task_id", taskController.Update())
 	app.Patch("/task/status", taskController.UpdateStatus())
 	app.Delete("/task/status", taskController.Delete())
 	app.Get("/task", taskController.GetAll())

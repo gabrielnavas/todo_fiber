@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -33,6 +34,9 @@ func (ts *TaskService) Create(task *models.Task) (*models.Task, error) {
 	}
 	task.Status = status
 
+	task.CreatedAt = time.Now()
+	task.UpdateAt = time.Now()
+
 	taskNameDuplicated, err := ts.taskRepository.GetByDescription(task.Description)
 	if err != nil {
 		// TODO: tratar melhor os erros do repositório
@@ -48,6 +52,45 @@ func (ts *TaskService) Create(task *models.Task) (*models.Task, error) {
 }
 
 func (ts *TaskService) Update(taskId string, task *models.Task) error {
+	taskFound, err := ts.taskRepository.GetById(taskId)
+	if err != nil {
+		return err
+	}
+	if taskFound == nil {
+		return errors.New("task não encontrada")
+	}
+
+	taskNameDuplicated, err := ts.taskRepository.GetByDescription(task.Description)
+	if err != nil {
+		// TODO: tratar melhor os erros do repositório
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
+	if taskNameDuplicated != nil {
+		return errors.New("já existe uma tarefa com essa descrição")
+	}
+
+	taskStatusFound, err := ts.taskStatusRepository.GetByName(task.Status.Name)
+	if err != nil {
+		// TODO: tratar melhor os erros do repositório
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
+	if taskStatusFound == nil {
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
+
+	taskFound.Description = task.Description
+	taskFound.Status = taskStatusFound
+	taskFound.UpdateAt = time.Now()
+
+	err = ts.taskRepository.Update(taskId, taskFound)
+	if err != nil {
+		// TODO: tratar melhor os erros do repositório
+		log.Fatalf("%s", err.Error())
+		return errors.New("houve um erro, tente novamente mais tarde")
+	}
 	return nil
 }
 

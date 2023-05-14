@@ -18,16 +18,26 @@ func NewTaskRepository(db *sql.DB, taskStatusRepository *TaskStatus) *TaskReposi
 }
 
 func (ts *TaskRepository) Create(task *models.Task) error {
-	sql := `
+	sqlStatement := `
 		INSERT INTO task(id, description, id_task_status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5)
 	`
-	_, err := ts.db.Exec(sql, task.Id, task.Description, task.Status.Id, task.CreatedAt, task.UpdateAt)
+	_, err := ts.db.Exec(sqlStatement, task.Id, task.Description, task.Status.Id, task.CreatedAt, task.UpdateAt)
 	return err
 }
 
 func (ts *TaskRepository) Update(taskId string, task *models.Task) error {
-	return nil
+	sqlStatement := `
+		UPDATE task
+		SET 
+			description = $1,
+			id_task_status = $2,
+			updated_at = $3
+		WHERE
+			id = $4;
+	`
+	_, err := ts.db.Exec(sqlStatement, task.Description, task.Status.Id, task.UpdateAt, taskId)
+	return err
 }
 
 func (ts *TaskRepository) UpdateStatus(newStatus *models.TaskStatus, task *models.Task) error {
@@ -78,6 +88,29 @@ func (ts *TaskRepository) GetByDescription(description string) (*models.Task, er
 	task := &models.Task{}
 	taskStatusId := ""
 	row := ts.db.QueryRow(sqlStatement, description)
+	switch err := row.Scan(&task.Id, &task.Description, &task.CreatedAt, &task.UpdateAt, &taskStatusId); err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		task.Status, err = ts.taskStatusRepository.Get(taskStatusId)
+		if err != nil {
+			return nil, err
+		}
+		return task, nil
+	default:
+		return nil, err
+	}
+}
+
+func (ts *TaskRepository) GetById(id string) (*models.Task, error) {
+	sqlStatement := `
+		SELECT id, description, created_at, updated_at, id_task_status
+		FROM task
+		where id = $1 
+	`
+	task := &models.Task{}
+	taskStatusId := ""
+	row := ts.db.QueryRow(sqlStatement, id)
 	switch err := row.Scan(&task.Id, &task.Description, &task.CreatedAt, &task.UpdateAt, &taskStatusId); err {
 	case sql.ErrNoRows:
 		return nil, nil
