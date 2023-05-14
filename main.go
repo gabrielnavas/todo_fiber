@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	_ "github.com/lib/pq"
 )
 
@@ -29,14 +30,21 @@ func makeDatabase() *sql.DB {
 
 func main() {
 	app := fiber.New()
-	app.Use(cors.New())
-	// app.Use(cors.New(cors.Config{
-	// 	AllowOrigins: "localhost:3000",
-	// 	AllowHeaders: "Origin, Content-Type, Accept",
-	// }))
+	// app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000",
+		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowMethods: "*",
+	}))
 
 	db := makeDatabase()
 	defer db.Close()
+
+	app.Use(logger.New(logger.Config{
+		Format:     "${pid} ${status} - ${method} ${path}\n",
+		TimeFormat: "02-Jan-2006",
+		TimeZone:   "America/New_York",
+	}))
 
 	taskStatusRepository := repository.NewTaskStatusRepository(db)
 	taskRepository := repository.NewTaskRepository(db, taskStatusRepository)
@@ -45,8 +53,8 @@ func main() {
 
 	app.Post("/task", taskController.Create())
 	app.Put("/task/:task_id", taskController.Update())
-	app.Patch("/task/status", taskController.UpdateStatus())
-	app.Delete("/task/status", taskController.Delete())
+	app.Patch("/task/status/:task_id", taskController.UpdateStatus())
+	app.Delete("/task/:task_id", taskController.Delete())
 	app.Get("/task", taskController.GetAll())
 	app.Get("/task/:id", taskController.Get())
 
