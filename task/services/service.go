@@ -66,7 +66,7 @@ func (ts *TaskService) Update(taskId string, task *models.Task) error {
 		log.Fatalf("%s", err.Error())
 		return errors.New("houve um erro, tente novamente mais tarde")
 	}
-	if taskNameDuplicated != nil {
+	if taskNameDuplicated != nil && taskNameDuplicated.Id != taskId {
 		return errors.New("já existe uma tarefa com essa descrição")
 	}
 
@@ -124,6 +124,10 @@ func (ts *TaskService) UpdateStatus(taskId string, taskNewStatus string) error {
 		return errors.New("houve um erro, tente novamente mais tarde")
 	}
 	return nil
+}
+
+func (ts *TaskService) GetAllStatus() ([]*models.TaskStatus, error) {
+	return ts.taskStatusRepository.GetAllStatus()
 }
 
 func (ts *TaskService) Delete(taskId string) error {

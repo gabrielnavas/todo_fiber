@@ -67,6 +67,7 @@ func main() {
 	app.Post("/task", taskController.Create())
 	app.Put("/task/:task_id", taskController.Update())
 	app.Patch("/task/status/:task_id", taskController.UpdateStatus())
+	app.Patch("/task/status/:task_id", taskController.GetAllStatus())
 	app.Delete("/task/:task_id", taskController.Delete())
 	app.Get("/task", taskController.GetAll())
 	app.Get("/task/:id", taskController.Get())
